@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Focus Tracker</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <div class="main-task">
+      <h2>What's your main task?</h2>
+      <div class="task-input">
+        <input type="text" id="taskInput" placeholder="Enter your main task">
+        <button id="pinTab" class="primary-button">Pin Current Tab</button>
+        <button id="startTracking" class="primary-button">Start Tracking</button>
+      </div>
+    </div>
+
+    <div class="focus-summary">
+      <h2>Focus Summary</h2>
+      <div class="time-blocks">
+        <div class="productive-time">
+          <h3>Productive Time</h3>
+          <span id="productiveTime">0m</span>
+        </div>
+        <div class="distraction-time">
+          <h3>Distraction Time</h3>
+          <span id="distractionTime">0m</span>
+        </div>
+      </div>
+      <div class="focus-rate">
+        <label>Focus Rate</label>
+        <div class="progress-bar">
+          <div id="focusRateBar" class="progress"></div>
+          <span id="focusRateText">0%</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="trail-history">
+      <h2>Trail History</h2>
+      <div id="historyList" class="history-list"></div>
+    </div>
+  </div>
+
+  <div id="distractionAlert" class="distraction-alert hidden">
+    <div class="alert-content">
+      <h3>Time to Focus!</h3>
+      <p id="alertMessage"></p>
+      <button id="gotItButton">Got it</button>
+    </div>
+  </div>
+
+  <div id="distractionProgress" class="distraction-progress hidden">
+    <div class="progress-content">
+      <div class="progress-bar">
+        <div id="progressFill" class="progress-fill"></div>
+      </div>
+      <div id="progressText" class="progress-text"></div>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
+
