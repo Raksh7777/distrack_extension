@@ -133,7 +133,7 @@ function createDistractionOverlay() {
       try {
         await audio.play();
         // Loop the sound until user clicks "Got it"
-        audio.loop = true;
+        audio.loop = false;
         console.log('Audio playing successfully');
       } catch (error) {
         console.error('Audio play failed:', error);
