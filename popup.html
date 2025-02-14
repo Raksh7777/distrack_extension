@@ -3,6 +3,32 @@
 <head>
   <title>Focus Tracker</title>
   <link rel="stylesheet" href="styles.css">
+  <style>
+    /* ... existing styles ... */
+    
+    .button-group {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+
+    .control-section {
+      margin-bottom: 20px;
+      padding: 10px;
+      border: 1px solid #dee2e6;
+      border-radius: 4px;
+    }
+
+    .section-title {
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+
+    .danger-zone {
+      background-color: #fff5f5;
+      border-color: #dc3545;
+    }
+  </style>
 </head>
 <body>
   <div class="container">
@@ -12,6 +38,7 @@
         <input type="text" id="taskInput" placeholder="Enter your main task">
         <button id="pinTab" class="primary-button">Pin Current Tab</button>
         <button id="startTracking" class="primary-button">Start Tracking</button>
+        <button id="stopTracking" class="danger-button" style="display: none;">Stop Tracking</button>
       </div>
     </div>
 
@@ -36,9 +63,22 @@
       </div>
     </div>
 
+    <!-- Add Pinned Tabs Section -->
+    <div class="pinned-tabs">
+      <h2>Productive Tabs</h2>
+      <div id="pinnedTabsList" class="pinned-tabs-list">
+        <!-- Pinned tabs will be listed here -->
+      </div>
+    </div>
+
     <div class="trail-history">
       <h2>Trail History</h2>
       <div id="historyList" class="history-list"></div>
+    </div>
+
+    <!-- Add Reset Section -->
+    <div class="reset-section">
+      <button id="resetData" class="danger-button">Reset All Data</button>
     </div>
   </div>
 

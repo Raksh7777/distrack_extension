@@ -6,7 +6,9 @@
   "permissions": ["tabs", "storage", "notifications", "activeTab", "windows", "scripting"],
   "host_permissions": ["<all_urls>"],
   "web_accessible_resources": [{
-    "resources": ["distraction-alert.html", "distraction-alert.js"],
+    "resources": [
+      "alert.mp3"
+    ],
     "matches": ["<all_urls>"]
   }],
   "action": {

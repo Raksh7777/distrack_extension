@@ -1,21 +1,23 @@
 let tracking = false
+let isPaused = false
 const pinnedTabs = new Set()
 let startTime = null
 let currentTab = null
+let lastActiveTabId = null
+let lastProductiveTabId = null
+let distractionTimer = null
+
 const timeData = {
   productive: 0,
   distraction: 0,
   history: [],
 }
 
-let distractionTimer = null
-let lastActiveTabId = null
-let lastProductiveTabId = null
-
-// Add this function to initialize state from storage
+// Initialize state from storage
 async function initializeState() {
-  const data = await chrome.storage.local.get(['tracking', 'timeData', 'pinnedTabIds']);
+  const data = await chrome.storage.local.get(['tracking', 'isPaused', 'timeData', 'pinnedTabIds']);
   tracking = data.tracking || false;
+  isPaused = data.isPaused || false;
   if (data.timeData) {
     timeData.productive = data.timeData.productive;
     timeData.distraction = data.timeData.distraction;
@@ -30,14 +32,14 @@ async function initializeState() {
 initializeState();
 
 chrome.tabs.onActivated.addListener(async (activeInfo) => {
-  if (!tracking) return
+  if (!tracking || isPaused) return
 
   const tab = await chrome.tabs.get(activeInfo.tabId)
   handleTabChange(tab)
 })
 
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-  if (!tracking || !changeInfo.url) return
+  if (!tracking || isPaused || !changeInfo.url) return
 
   handleTabChange(tab)
 })
@@ -180,62 +182,108 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   switch (request.type) {
     case "START_TRACKING":
       console.log('Starting tracking...');
-      tracking = true
-      startTime = Date.now()
+      tracking = true;
+      isPaused = false;
+      startTime = Date.now();
+      chrome.storage.local.set({ 
+        tracking: true,
+        isPaused: false 
+      });
       
-      // Store tracking state
-      chrome.storage.local.set({ tracking: true });
-      
-      // Test notification when tracking starts
-      chrome.notifications.create({
-        type: 'basic',
-        iconUrl: '/icons/icon48.png',
-        title: 'Tracking Started',
-        message: 'Focus tracking is now active',
-        requireInteraction: false
-      }, (notificationId) => {
-        console.log('Start tracking notification created with ID:', notificationId);
-        if (chrome.runtime.lastError) {
-          console.error('Start notification error:', chrome.runtime.lastError);
+      // Get current tab and start tracking
+      chrome.tabs.query({ active: true, currentWindow: true }, async (tabs) => {
+        if (tabs[0]) {
+          handleTabChange(tabs[0]);
         }
       });
-      break
+      break;
+
+    case "PAUSE_TRACKING":
+      isPaused = true;
+      clearDistractionTimer();
+      if (currentTab) {
+        const duration = Date.now() - startTime;
+        updateTimeData(currentTab, duration);
+      }
+      chrome.storage.local.set({ isPaused: true });
+      break;
 
     case "STOP_TRACKING":
-      tracking = false
-      clearDistractionTimer()
-      // Store tracking state
-      chrome.storage.local.set({ tracking: false });
-      break
+      tracking = false;
+      isPaused = false;
+      clearDistractionTimer();
+      if (currentTab) {
+        const duration = Date.now() - startTime;
+        updateTimeData(currentTab, duration);
+      }
+      currentTab = null;
+      startTime = null;
+      chrome.storage.local.set({ 
+        tracking: false,
+        isPaused: false 
+      });
+      break;
 
     case "PIN_TAB":
       chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
         if (tabs[0]) {
-          pinnedTabs.add(tabs[0].id)
-          // Store pinned tab IDs
+          pinnedTabs.add(tabs[0].id);
           chrome.storage.local.set({ 
             pinnedTabIds: Array.from(pinnedTabs) 
           });
+          if (tracking && !isPaused) {
+            handleTabChange(tabs[0]);
+          }
         }
-      })
-      break
+      });
+      break;
+
+    case "UNPIN_TAB":
+      if (request.tabId) {
+        pinnedTabs.delete(request.tabId);
+        chrome.storage.local.set({ 
+          pinnedTabIds: Array.from(pinnedTabs) 
+        }, () => {
+          if (tracking && !isPaused) {
+            chrome.tabs.query({ active: true, currentWindow: true }, (activeTabs) => {
+              if (activeTabs[0]) {
+                handleTabChange(activeTabs[0]);
+              }
+            });
+          }
+          sendResponse(); // Send response back to popup
+        });
+      }
+      return true; // Indicate we'll send response asynchronously
 
     case "PIN_MULTIPLE_TABS":
       chrome.tabs.query({ highlighted: true, currentWindow: true }, (tabs) => {
         tabs.forEach(tab => {
-          chrome.tabs.update(tab.id, { pinned: true });
           pinnedTabs.add(tab.id);
         });
-        // Store pinned tab IDs
         chrome.storage.local.set({ 
           pinnedTabIds: Array.from(pinnedTabs) 
         });
+        if (tracking && !isPaused) {
+          chrome.tabs.query({ active: true, currentWindow: true }, (activeTabs) => {
+            if (activeTabs[0]) {
+              handleTabChange(activeTabs[0]);
+            }
+          });
+        }
       });
-      break
+      break;
+
+    case "RESET_DATA":
+      timeData.productive = 0;
+      timeData.distraction = 0;
+      timeData.history = [];
+      chrome.storage.local.set({ timeData });
+      break;
 
     case "GET_TIME_DATA":
-      sendResponse(timeData)
-      break
+      sendResponse(timeData);
+      break;
 
     case "RETURN_TO_PRODUCTIVE_TAB":
       if (lastProductiveTabId) {

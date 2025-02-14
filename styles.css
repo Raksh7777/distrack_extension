@@ -20,6 +20,7 @@ h2 {
 .task-input {
   display: flex;
   gap: 8px;
+  flex-wrap: wrap;
 }
 
 input[type="text"] {
@@ -203,5 +204,61 @@ input[type="text"] {
   font-size: 12px;
   color: #dc2626;
   text-align: center;
+}
+
+.pinned-tabs {
+  margin: 20px 0;
+}
+
+.pinned-tabs-list {
+  max-height: 150px;
+  overflow-y: auto;
+}
+
+.pinned-tab-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px;
+  border-bottom: 1px solid #eee;
+}
+
+.pinned-tab-title {
+  flex-grow: 1;
+  margin-right: 10px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.unpin-button {
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.danger-button {
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.danger-button:hover {
+  background-color: #bb2d3b;
+}
+
+.reset-section {
+  text-align: center;
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #eee;
 }
 
